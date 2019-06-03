@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
@@ -89,7 +89,7 @@ namespace zFrame.EditorCoroutines
 
             public bool IsDone(float deltaTime)
             {
-                return coroutine.finished;
+                return null==coroutine|| null == coroutine.routine || coroutine.finished; //一旦目标协程消亡，一并消亡
             }
         }
         #endregion
@@ -216,7 +216,12 @@ namespace zFrame.EditorCoroutines
             for (var i = tempCoroutineList.Count - 1; i >= 0; i--)
             {
                 EditorCoroutine coroutine = tempCoroutineList[i];
-
+                if (null==coroutine.currentYield)
+                {
+                    coroutine.Clear();
+                    coroutines.Remove(coroutine);
+                    continue;
+                }
                 if (!coroutine.currentYield.IsDone(deltaTime))
                 {
                     continue;
@@ -233,7 +238,8 @@ namespace zFrame.EditorCoroutines
         static bool MoveNext(EditorCoroutine coroutine)
         {
             //如果使用 .net 基类 object，则无法正常的与Unity对象判等
-            if (coroutine.routine.MoveNext() && null != coroutine.owner) //协成会随着 目标 的消亡而完成,在Coroutine被移除时，也就没有下一步了
+            //协成会随着 目标 的消亡而完成,在Coroutine被移除时，也就没有下一步了
+            if (null != coroutine.owner && coroutine.routine.MoveNext())
             {
                 return Process(coroutine);
             }
