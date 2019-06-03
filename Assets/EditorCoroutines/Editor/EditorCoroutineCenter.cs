@@ -89,7 +89,7 @@ namespace zFrame.EditorCoroutines
 
             public bool IsDone(float deltaTime)
             {
-                return null==coroutine|| null == coroutine.routine || coroutine.finished; //一旦目标协程消亡，一并消亡
+                return coroutine.finished;
             }
         }
         #endregion
@@ -203,25 +203,21 @@ namespace zFrame.EditorCoroutines
         void OnUpdate()
         {
             float deltaTime = (float)(DateTime.Now.Subtract(previousTimeSinceStartup).TotalMilliseconds / 1000.0f);
-
             previousTimeSinceStartup = DateTime.Now;
-            if (coroutines.Count == 0)
+            coroutines.RemoveAll(v =>  //修剪列表，引用丢失的协程一并消亡
             {
-                return;
-            }
+                bool eq = null == v.owner;
+                if (eq) v.Clear();
+                return eq;
+            });
 
+            if (coroutines.Count == 0) return;
             tempCoroutineList.Clear();
             tempCoroutineList.AddRange(coroutines);
 
             for (var i = tempCoroutineList.Count - 1; i >= 0; i--)
             {
                 EditorCoroutine coroutine = tempCoroutineList[i];
-                if (null==coroutine.currentYield)
-                {
-                    coroutine.Clear();
-                    coroutines.Remove(coroutine);
-                    continue;
-                }
                 if (!coroutine.currentYield.IsDone(deltaTime))
                 {
                     continue;
@@ -237,9 +233,7 @@ namespace zFrame.EditorCoroutines
 
         static bool MoveNext(EditorCoroutine coroutine)
         {
-            //如果使用 .net 基类 object，则无法正常的与Unity对象判等
-            //协成会随着 目标 的消亡而完成,在Coroutine被移除时，也就没有下一步了
-            if (null != coroutine.owner && coroutine.routine.MoveNext())
+            if (coroutine.routine.MoveNext())
             {
                 return Process(coroutine);
             }
