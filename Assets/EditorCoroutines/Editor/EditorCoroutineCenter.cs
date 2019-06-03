@@ -218,6 +218,7 @@ namespace zFrame.EditorCoroutines
             for (var i = tempCoroutineList.Count - 1; i >= 0; i--)
             {
                 EditorCoroutine coroutine = tempCoroutineList[i];
+
                 if (!coroutine.currentYield.IsDone(deltaTime))
                 {
                     continue;
@@ -233,7 +234,9 @@ namespace zFrame.EditorCoroutines
 
         static bool MoveNext(EditorCoroutine coroutine)
         {
-            if (coroutine.routine.MoveNext())
+            // system.object 与 UnityEngine.Object 不能判等，所以原仓库的 object 全部改为 ScriptableObject。
+            // 窗口被关闭，该窗口所有开启的协程都会一并消亡。
+            if (null!=coroutine.owner &&coroutine.routine.MoveNext())
             {
                 return Process(coroutine);
             }
