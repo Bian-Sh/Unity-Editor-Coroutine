@@ -25,8 +25,8 @@ namespace zFrame.EditorCoroutines
             {
                 this.StartCoroutine("Example");
             }
-            if (GUILayout.Button("StartByFunc"))
-            {
+            if (GUILayout.Button("StartByFunc")) // 该按键多次点击，只会记录最后一个协程返回值，所以下面停止按键只能停掉一个最后开启的协程
+            { 
                 coroutine= this.StartCoroutine(Example());
             }
 

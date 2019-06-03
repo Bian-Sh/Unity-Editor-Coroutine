@@ -168,7 +168,7 @@ namespace zFrame.EditorCoroutines
         /// <param name="routine">运行中的协程</param>
         public void StopCoroutine(ScriptableObject target, EditorCoroutine routine)
         {
-            coroutines.Remove(routine);
+            RemoveCoroutine(routine);
         }
         public void StopCoroutine(ScriptableObject target, IEnumerator routine)
         {
@@ -176,7 +176,11 @@ namespace zFrame.EditorCoroutines
             {
                 return v.owner == target && v.routine.GetType().Name == routine.GetType().Name;
             };
-            coroutines.RemoveAll(predicate); // todo :  移除所有？？还是移除首个？ 
+            List<EditorCoroutine> cors= coroutines.FindAll(predicate); // todo :  移除所有？？还是移除首个？ 
+            foreach (var item in cors)
+            {
+                RemoveCoroutine(item);
+            }
         }
 
 
@@ -186,7 +190,11 @@ namespace zFrame.EditorCoroutines
             {
                 return v.owner == target && v.MethodName == methodName;
             };
-            coroutines.RemoveAll(predicate);
+            List<EditorCoroutine> cors = coroutines.FindAll(predicate); // todo :  移除所有？？还是移除首个？ 
+            foreach (var item in cors)
+            {
+                RemoveCoroutine(item);
+            }
         }
 
         public void StopAllCoroutines(ScriptableObject target)
@@ -195,7 +203,19 @@ namespace zFrame.EditorCoroutines
             {
                 return v.owner == target;
             };
-            coroutines.RemoveAll(predicate);
+            List<EditorCoroutine> cors = coroutines.FindAll(predicate); // todo :  移除所有？？还是移除首个？ 
+            foreach (var item in cors)
+            {
+                RemoveCoroutine(item);
+            }
+        }
+        void RemoveCoroutine(EditorCoroutine target)
+        {
+            if (null != target)
+            {
+                coroutines.Remove(target);
+                target.Clear();
+            }
         }
         #endregion
 
@@ -219,7 +239,7 @@ namespace zFrame.EditorCoroutines
             {
                 EditorCoroutine coroutine = tempCoroutineList[i];
 
-                if (!coroutine.currentYield.IsDone(deltaTime))
+                if (null!= coroutine.currentYield&&!coroutine.currentYield.IsDone(deltaTime))
                 {
                     continue;
                 }
@@ -234,9 +254,9 @@ namespace zFrame.EditorCoroutines
 
         static bool MoveNext(EditorCoroutine coroutine)
         {
-            // system.object 与 UnityEngine.Object 不能判等，所以原仓库的 object 全部改为 ScriptableObject。
+            // system.object 与 UnityEngine.Object 的 null 不是一个性质，所以 不能 System.object 指向Unityde对象再去判等，所以原仓库的 System.object 全部改为 ScriptableObject。
             // 窗口被关闭，该窗口所有开启的协程都会一并消亡。
-            if (null!=coroutine.owner &&coroutine.routine.MoveNext())
+            if (null != coroutine.owner && coroutine.routine.MoveNext())
             {
                 return Process(coroutine);
             }
